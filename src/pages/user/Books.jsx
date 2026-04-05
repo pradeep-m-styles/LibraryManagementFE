@@ -1,44 +1,65 @@
 import { useEffect, useState } from "react";
-import API from "../../services/api"; // ✅ correct path from user folder
+import API from "../../services/api";
 
 export default function Books() {
-  const [books, setBooks] = useState([]);
+  const [books, setBooks] = useState([]); // all books
+  const [searchResults, setSearchResults] = useState([]); // filtered books
+  const [query, setQuery] = useState("");
 
+  // Fetch books from backend
   useEffect(() => {
     const fetchBooks = async () => {
       try {
-        const res = await API.get("/books"); // fetch all books
-        setBooks(res.data.books || []);
+        const res = await API.get("/books");
+        const booksArray = Array.isArray(res.data.books) ? res.data.books : [];
+        setBooks(booksArray);
+        setSearchResults(booksArray);
       } catch (err) {
         console.error("Error fetching books:", err);
-        setBooks([]);
       }
     };
-
     fetchBooks();
   }, []);
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-yellow-50 to-yellow-100 p-6">
-      <div className="max-w-4xl mx-auto space-y-6">
-        <h1 className="text-3xl font-bold text-yellow-700 mb-4">Books</h1>
+  // Handle search
+  const handleSearch = (e) => {
+    const q = e.target.value.toLowerCase();
+    setQuery(q);
+    const filtered = books.filter(
+      (b) =>
+        b.title.toLowerCase().includes(q) ||
+        b.author.toLowerCase().includes(q)
+    );
+    setSearchResults(filtered);
+  };
 
-        {books.length === 0 ? (
+  return (
+    <div className="min-h-screen bg-yellow-50 p-6">
+      <div className="max-w-5xl mx-auto space-y-6">
+        <h1 className="text-3xl font-bold text-yellow-700">Books</h1>
+
+        <input
+          type="text"
+          placeholder="Search books by title or author..."
+          value={query}
+          onChange={handleSearch}
+          className="w-full p-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 mb-4"
+        />
+
+        {searchResults.length === 0 ? (
           <p className="text-gray-600">No books found.</p>
         ) : (
-          <ul className="space-y-3">
-            {books.map((b) => (
-              <li
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {searchResults.map((b) => (
+              <div
                 key={b._id}
-                className="bg-gradient-to-r from-yellow-100 to-yellow-200 p-4 rounded-lg shadow-md hover:shadow-xl transition duration-300 flex justify-between items-center"
+                className="bg-yellow-100 p-4 rounded-lg shadow-md hover:shadow-xl transition duration-300"
               >
-                <div>
-                  <p className="font-semibold text-gray-800 text-lg">{b.title}</p>
-                  <p className="text-gray-600">{b.author} - {b.genre}</p>
-                </div>
+                <p className="font-semibold text-gray-800 text-lg">{b.title}</p>
+                <p className="text-gray-600">{b.author} - {b.genre}</p>
                 {b.status && (
                   <span
-                    className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                    className={`px-2 py-1 mt-2 inline-block text-xs font-semibold rounded-full ${
                       b.status === "borrowed"
                         ? "bg-blue-200 text-blue-800"
                         : b.status === "reserved"
@@ -51,9 +72,9 @@ export default function Books() {
                     {b.status}
                   </span>
                 )}
-              </li>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
       </div>
     </div>

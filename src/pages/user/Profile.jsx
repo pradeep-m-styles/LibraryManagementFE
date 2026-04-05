@@ -1,6 +1,5 @@
-// src/pages/Profile.jsx
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+// src/pages/user/Profile.jsx
+import React, { useEffect, useState } from "react";
 
 const Profile = () => {
   const [borrowedBooks, setBorrowedBooks] = useState([]);
@@ -8,9 +7,10 @@ const Profile = () => {
 
   const user = JSON.parse(localStorage.getItem("user"));
 
+  // ✅ Use Vite env variable for backend
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-  // Dummy borrowed books (responsive & colorful)
+  // Dummy borrowed books (for display)
   useEffect(() => {
     const fetchBorrowedBooks = async () => {
       try {
@@ -30,14 +30,23 @@ const Profile = () => {
   // Send Test Email
   const sendTestEmail = async () => {
     try {
-      const res = await axios.post(`${API_URL}/api/send-email`, {
-        to: "pradeepsiva971@gmail.com",
-        subject: "Test LMS Email",
-        text: "Hello from frontend trigger",
+      const res = await fetch(`${API_URL}/api/send-email`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: "pradeepsiva971@gmail.com",
+          subject: "Test LMS Email",
+          text: "Hello from frontend trigger",
+        }),
       });
-      setEmailStatus(res.data.success ? "Email sent ✅" : "Failed ❌");
+
+      if (res.ok) {
+        setEmailStatus("Email sent ✅");
+      } else {
+        setEmailStatus("Failed ❌");
+      }
     } catch (err) {
-      console.log(err);
+      console.error(err);
       setEmailStatus("Failed ❌");
     }
   };
@@ -48,8 +57,12 @@ const Profile = () => {
         {/* Profile Card */}
         <div className="bg-white shadow-lg rounded-xl p-6 border-l-4 border-blue-500 hover:shadow-2xl transition duration-300">
           <h2 className="text-2xl font-bold text-blue-600 mb-2">Profile</h2>
-          <p className="text-gray-700"><span className="font-semibold">Name:</span> {user?.name || "N/A"}</p>
-          <p className="text-gray-700"><span className="font-semibold">Email:</span> {user?.email || "N/A"}</p>
+          <p className="text-gray-700">
+            <span className="font-semibold">Name:</span> {user?.name || "N/A"}
+          </p>
+          <p className="text-gray-700">
+            <span className="font-semibold">Email:</span> {user?.email || "N/A"}
+          </p>
         </div>
 
         {/* Email Button */}
@@ -61,7 +74,11 @@ const Profile = () => {
             Send Test Email
           </button>
           {emailStatus && (
-            <span className={`font-semibold ${emailStatus.includes("✅") ? "text-green-600" : "text-red-600"}`}>
+            <span
+              className={`font-semibold ${
+                emailStatus.includes("✅") ? "text-green-600" : "text-red-600"
+              }`}
+            >
               {emailStatus}
             </span>
           )}
@@ -69,7 +86,9 @@ const Profile = () => {
 
         {/* Borrowed Books */}
         <div className="bg-white shadow-lg rounded-xl p-6 border-l-4 border-green-500 hover:shadow-2xl transition duration-300">
-          <h2 className="text-xl font-bold text-green-600 mb-4">Borrowed Books</h2>
+          <h2 className="text-xl font-bold text-green-600 mb-4">
+            Borrowed Books
+          </h2>
           {borrowedBooks.length === 0 ? (
             <p className="text-gray-600">No borrowed books.</p>
           ) : (

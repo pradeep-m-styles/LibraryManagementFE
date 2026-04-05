@@ -1,10 +1,11 @@
+// src/pages/user/BookDetails.jsx
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import API from "../../services/api";
 
 export default function BookDetails() {
   const { id } = useParams();
-  const [book, setBook] = useState(null); // start with null
+  const [book, setBook] = useState(null);
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -16,7 +17,6 @@ export default function BookDetails() {
         setBook(null);
       }
     };
-
     fetchBook();
   }, [id]);
 
@@ -30,14 +30,14 @@ export default function BookDetails() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-purple-100 p-6 flex justify-center">
-      <div className="card max-w-xl w-full bg-white rounded-lg shadow-lg p-6 space-y-4">
+      <div className="bg-white rounded-xl shadow-lg p-6 max-w-lg w-full hover:shadow-2xl transition transform hover:scale-105 space-y-4">
         <h1 className="text-3xl font-bold text-purple-700">{book.title}</h1>
         <p className="text-gray-700 font-medium">Author: {book.author}</p>
         <p className="text-gray-700 font-medium">Genre: {book.genre}</p>
 
         {book.status && (
           <span
-            className={`px-3 py-1 text-sm font-semibold rounded-full ${
+            className={`inline-block px-3 py-1 text-sm font-semibold rounded-full ${
               book.status === "borrowed"
                 ? "bg-blue-200 text-blue-800"
                 : book.status === "reserved"
