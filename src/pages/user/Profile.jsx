@@ -8,7 +8,7 @@ const Profile = () => {
   const user = JSON.parse(localStorage.getItem("user"));
 
   // ✅ Use Vite env variable for backend
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const API_URL = import.meta.env.VITE_API_URL || "https://librarymanagementbe-th64.onrender.com/";
 
   // Dummy borrowed books (for display)
   useEffect(() => {
