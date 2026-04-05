@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+/* Custom reusable styles */
+@layer components {
+   .btn {
+      @apply px-4 py-2 rounded-xl font-semibold transition duration-300;
+   }
+
+   .btn-primary {
+      @apply bg-blue-600 text-white hover:bg-blue-700;
+   }
+
+   .btn-secondary {
+      @apply bg-gray-200 hover:bg-gray-300;
+   }
+
+   .card {
+      @apply bg-white shadow-md rounded-2xl p-4 hover:shadow-lg transition;
+   }
+
+   .input {
+      @apply w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500;
+   }
+}
