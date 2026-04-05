@@ -8,7 +8,7 @@ export default function SendEmail() {
   const sendEmail = async () => {
     try {
       const res = await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/send-email`,
+        `${process.env.VITE_API_URL}/api/send-email`,
         {
           to: "pradeepsiva971@gmail.com", // replace with actual email
           subject: "Test LMS Email",
