@@ -4,37 +4,45 @@ import API from "../api/axios";
 export default function Profile() {
 
   const [user, setUser] = useState(null);
+  const [borrowedCount, setBorrowedCount] = useState(0);
+
+  const getConfig = () => {
+    const token = localStorage.getItem("token");
+
+    return {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+  };
 
   useEffect(() => {
 
-    const fetchUser = async () => {
-
+    const fetchData = async () => {
       try {
 
         const userId = localStorage.getItem("userId");
 
-        const res = await API.get(`/auth/user/${userId}`);
+        const [userRes, borrowRes] = await Promise.all([
+          API.get(`/auth/user/${userId}`, getConfig()),
+          API.get(`/borrow/${userId}`, getConfig())
+        ]);
 
-        const data = res.data;
-
-        // 🔥 FORCE NORMALIZATION (IMPORTANT FIX)
-        setUser({
-          ...data,
-          borrowedBooks: data.borrowedBooks || []
-        });
+        setUser(userRes.data || {});
+        setBorrowedCount((borrowRes.data || []).length);
 
       } catch (err) {
-        console.log(err);
+        console.log(err.response?.data || err.message);
       }
     };
 
-    fetchUser();
+    fetchData();
 
   }, []);
 
   if (!user) {
     return (
-      <div className="p-6 text-xl text-center">
+      <div className="p-6 text-center text-xl">
         Loading profile...
       </div>
     );
@@ -44,28 +52,24 @@ export default function Profile() {
 
     <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-200 p-6">
 
-      <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl p-8 w-full max-w-md text-center border">
+      <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl p-8 w-full max-w-md text-center">
 
-        {/* AVATAR */}
-        <div className="w-24 h-24 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full flex items-center justify-center text-4xl font-bold mx-auto shadow-lg">
+        <div className="w-24 h-24 bg-indigo-600 text-white rounded-full flex items-center justify-center text-4xl font-bold mx-auto">
           {user.name?.charAt(0).toUpperCase()}
         </div>
 
-        {/* NAME */}
         <h1 className="text-3xl font-bold text-indigo-700 mt-4">
           {user.name}
         </h1>
 
-        {/* EMAIL */}
         <p className="text-gray-600 mt-2">
           📧 {user.email}
         </p>
 
-        {/* BORROW COUNT FIXED */}
-        <div className="mt-6 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-4 shadow">
+        <div className="mt-6 bg-indigo-50 rounded-xl p-4">
 
           <p className="text-lg font-semibold text-indigo-700">
-            📚 Borrowed Books: {Array.isArray(user.borrowedBooks) ? user.borrowedBooks.length : 0}
+            📚 Borrowed Books: {borrowedCount}
           </p>
 
         </div>

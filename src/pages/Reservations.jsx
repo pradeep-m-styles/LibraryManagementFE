@@ -16,21 +16,23 @@ export default function Reservations() {
     };
   };
 
+  // 📚 BOOKS
   const fetchBooks = async () => {
     try {
       const res = await API.get("/books", getConfig());
       setBooks(res.data || []);
     } catch (err) {
-      console.log(err);
+      console.log("Books error:", err.response?.data || err.message);
     }
   };
 
+  // 📌 RESERVATIONS
   const fetchReservations = async () => {
     try {
       const res = await API.get("/reservations", getConfig());
       setReservations(res.data || []);
     } catch (err) {
-      console.log(err);
+      console.log("Reservations error:", err.response?.data || err.message);
     }
   };
 
@@ -39,24 +41,33 @@ export default function Reservations() {
     fetchReservations();
   }, []);
 
+  // 🚀 FIXED RESERVE FUNCTION
   const reserveBook = async (bookId) => {
     try {
 
-      const userId = localStorage.getItem("userId");
+      const token = localStorage.getItem("token");
 
-      await API.post(
+      // 🔥 IMPORTANT FIX: most backends expect ONLY bookId
+      const res = await API.post(
         "/reservations",
-        { userId, bookId },
-        getConfig()
+        { book: bookId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
+
+      console.log("Reservation success:", res.data);
 
       fetchReservations();
 
-      alert("Book reserved successfully");
+      alert("✅ Book reserved successfully");
 
     } catch (err) {
-      console.log(err.response?.data || err.message);
-      alert("Reservation failed");
+      console.log("RESERVATION ERROR:", err.response?.data || err.message);
+
+      alert(err.response?.data?.message || "Reservation failed");
     }
   };
 
@@ -75,22 +86,22 @@ export default function Reservations() {
 
           <div
             key={book._id}
-            className="bg-white/80 backdrop-blur-xl p-6 rounded-2xl shadow-xl"
+            className="bg-white/80 backdrop-blur-xl p-6 rounded-2xl shadow-xl hover:scale-105 transition"
           >
 
             <h2 className="text-xl font-bold text-indigo-700">
-              {book.title}
+              📘 {book.title}
             </h2>
 
             <p className="text-gray-600">
-              {book.author}
+              ✍️ {book.author}
             </p>
 
             <button
               onClick={() => reserveBook(book._id)}
-              className="mt-4 w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-xl"
+              className="mt-4 w-full bg-gradient-to-r from-orange-500 to-pink-500 hover:from-pink-500 hover:to-orange-500 text-white py-2 rounded-xl font-semibold"
             >
-              Reserve
+              Reserve 🚀
             </button>
 
           </div>
@@ -110,8 +121,11 @@ export default function Reservations() {
           <p className="text-gray-600">No reservations 😢</p>
         ) : (
           reservations.map(r => (
-            <div key={r._id} className="bg-white p-4 rounded-xl shadow mb-3">
-              📘 {r.bookId?.title}
+            <div
+              key={r._id}
+              className="bg-white/80 backdrop-blur-xl p-4 rounded-xl shadow mb-3"
+            >
+              📘 {r.book?.title}
             </div>
           ))
         )}

@@ -2,67 +2,77 @@ import { useEffect, useState } from "react";
 import API from "../api/axios";
 
 export default function Dashboard() {
-  const [books, setBooks] = useState(0);
-  const [users, setUsers] = useState(0);
-  const [borrows, setBorrows] = useState(0);
-  const [overdue, setOverdue] = useState(0);
+
+  const [books, setBooks] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [borrows, setBorrows] = useState([]);
+  const [overdue, setOverdue] = useState([]);
+
+  const getConfig = () => {
+    const token = localStorage.getItem("token");
+
+    return {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+  };
+
+  const fetchData = async () => {
+    try {
+
+      const [booksRes, usersRes, borrowsRes, overdueRes] =
+        await Promise.all([
+          API.get("/books", getConfig()),
+          API.get("/auth/users", getConfig()),      // adjust if your route differs
+          API.get("/borrow", getConfig()),          // ALL borrows
+          API.get("/borrow/overdue", getConfig())   // overdue list
+        ]);
+
+      setBooks(booksRes.data || []);
+      setUsers(usersRes.data || []);
+      setBorrows(borrowsRes.data || []);
+      setOverdue(overdueRes.data || []);
+
+    } catch (err) {
+      console.log("Dashboard error:", err.response?.data || err.message);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const token = localStorage.getItem("token");
-
-        const config = {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        };
-
-        // 🔥 BOOKS
-        const booksRes = await API.get("/books", config);
-        setBooks(booksRes.data.length || 0);
-
-        // 🔥 USERS
-        const usersRes = await API.get("/users", config);
-        setUsers(usersRes.data.length || 0);
-
-        // 🔥 BORROWS
-        const borrowsRes = await API.get("/borrows", config);
-        setBorrows(borrowsRes.data.length || 0);
-
-        // 🔥 OVERDUE
-        const overdueRes = await API.get("/borrows/overdue", config);
-        setOverdue(overdueRes.data.length || 0);
-
-      } catch (err) {
-        console.log("Dashboard error:", err.response?.data || err.message);
-      }
-    };
-
     fetchData();
   }, []);
 
   return (
-    <div className="p-6 grid grid-cols-2 gap-6">
 
-      <div className="bg-white shadow p-6 rounded-xl">
-        <h2 className="text-xl font-bold">Books</h2>
-        <p className="text-3xl">{books}</p>
-      </div>
+    <div className="min-h-screen p-8 bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100">
 
-      <div className="bg-white shadow p-6 rounded-xl">
-        <h2 className="text-xl font-bold">Users</h2>
-        <p className="text-3xl">{users}</p>
-      </div>
+      <h1 className="text-4xl font-bold text-center mb-10 text-indigo-700">
+        📊 Dashboard
+      </h1>
 
-      <div className="bg-white shadow p-6 rounded-xl">
-        <h2 className="text-xl font-bold">Borrows</h2>
-        <p className="text-3xl">{borrows}</p>
-      </div>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
 
-      <div className="bg-white shadow p-6 rounded-xl">
-        <h2 className="text-xl font-bold">Overdue</h2>
-        <p className="text-3xl">{overdue}</p>
+        <div className="bg-white p-6 rounded-2xl shadow-xl text-center">
+          <h2 className="text-2xl font-bold text-indigo-600">{books.length}</h2>
+          <p>Books</p>
+        </div>
+
+        <div className="bg-white p-6 rounded-2xl shadow-xl text-center">
+          <h2 className="text-2xl font-bold text-green-600">{users.length}</h2>
+          <p>Users</p>
+        </div>
+
+        <div className="bg-white p-6 rounded-2xl shadow-xl text-center">
+          <h2 className="text-2xl font-bold text-orange-600">{borrows.length}</h2>
+          <p>Borrows</p>
+        </div>
+
+        <div className="bg-white p-6 rounded-2xl shadow-xl text-center">
+          <h2 className="text-2xl font-bold text-red-600">{overdue.length}</h2>
+          <p>Overdue</p>
+        </div>
+
       </div>
 
     </div>
