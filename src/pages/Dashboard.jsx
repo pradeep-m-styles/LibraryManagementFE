@@ -4,7 +4,7 @@ import API from "../api/axios";
 export default function Dashboard() {
 
   const [books, setBooks] = useState([]);
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState(1); // current user only
   const [borrows, setBorrows] = useState([]);
   const [overdue, setOverdue] = useState([]);
 
@@ -21,14 +21,25 @@ export default function Dashboard() {
   const fetchData = async () => {
     try {
 
+      const userId = localStorage.getItem("userId");
+
+      // ✅ FIXED ROUTES (NO /auth/users, NO /borrow/:id)
+
       const booksRes = await API.get("/books", getConfig());
-      const usersRes = await API.get("/auth/users", getConfig());
+
+      const userRes = await API.get(`/auth/user/${userId}`, getConfig());
+
       const borrowsRes = await API.get("/borrow", getConfig());
+
       const overdueRes = await API.get("/borrow/overdue", getConfig());
 
-      setBooks(Array.isArray(booksRes.data) ? booksRes.data : []);
-      setUsers(Array.isArray(usersRes.data) ? usersRes.data : []);
+      setBooks(booksRes.data || []);
+
+      // single user profile (not /users list)
+      setUsers(userRes.data ? 1 : 0);
+
       setBorrows(Array.isArray(borrowsRes.data) ? borrowsRes.data : []);
+
       setOverdue(Array.isArray(overdueRes.data) ? overdueRes.data : []);
 
     } catch (err) {
@@ -59,9 +70,9 @@ export default function Dashboard() {
 
         <div className="bg-white p-6 rounded-2xl shadow text-center">
           <h2 className="text-3xl font-bold text-green-600">
-            {users.length}
+            {users}
           </h2>
-          <p>Users</p>
+          <p>User</p>
         </div>
 
         <div className="bg-white p-6 rounded-2xl shadow text-center">
