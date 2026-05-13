@@ -4,7 +4,7 @@ import API from "../api/axios";
 export default function Dashboard() {
 
   const [books, setBooks] = useState([]);
-  const [users, setUsers] = useState(1); // current user only
+  const [users, setUsers] = useState(1);
   const [borrows, setBorrows] = useState([]);
   const [overdue, setOverdue] = useState([]);
 
@@ -18,29 +18,38 @@ export default function Dashboard() {
     };
   };
 
+  // 🔥 UNIVERSAL RESPONSE FIX
+  const extractArray = (res) => {
+    return (
+      res.data?.books ||
+      res.data?.borrows ||
+      res.data?.users ||
+      res.data?.data ||
+      res.data?.result ||
+      (Array.isArray(res.data) ? res.data : [])
+    );
+  };
+
   const fetchData = async () => {
     try {
 
       const userId = localStorage.getItem("userId");
 
-      // ✅ FIXED ROUTES (NO /auth/users, NO /borrow/:id)
-
       const booksRes = await API.get("/books", getConfig());
-
       const userRes = await API.get(`/auth/user/${userId}`, getConfig());
-
       const borrowsRes = await API.get("/borrow", getConfig());
-
       const overdueRes = await API.get("/borrow/overdue", getConfig());
 
-      setBooks(booksRes.data || []);
+      // 🔥 FIXED BOOKS
+      const booksData = extractArray(booksRes);
+      const borrowData = extractArray(borrowsRes);
+      const overdueData = extractArray(overdueRes);
 
-      // single user profile (not /users list)
+      setBooks(booksData);
+      setBorrows(borrowData);
+      setOverdue(overdueData);
+
       setUsers(userRes.data ? 1 : 0);
-
-      setBorrows(Array.isArray(borrowsRes.data) ? borrowsRes.data : []);
-
-      setOverdue(Array.isArray(overdueRes.data) ? overdueRes.data : []);
 
     } catch (err) {
       console.log("Dashboard error:", err.response?.data || err.message);

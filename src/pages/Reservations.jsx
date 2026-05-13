@@ -41,7 +41,7 @@ export default function Reservations() {
     fetchReservations();
   }, []);
 
-  // 🚀 FIXED RESERVE FUNCTION (FINAL)
+  // 🚀 FIXED RESERVE FUNCTION
   const reserveBook = async (bookId) => {
     try {
 
@@ -56,8 +56,8 @@ export default function Reservations() {
       const res = await API.post(
         "/reservations",
         {
-          user: userId,   // ✅ MUST match schema
-          book: bookId    // ✅ MUST match schema
+          userId: userId,   
+          bookId: bookId    
         },
         {
           headers: {
@@ -76,13 +76,11 @@ export default function Reservations() {
 
       console.log("RESERVATION ERROR:", err.response?.data || err.message);
 
-      // 🔥 SHOW REAL BACKEND ERROR
       alert(err.response?.data?.message || "Reservation failed");
     }
   };
 
   return (
-
     <div className="min-h-screen p-6 bg-gradient-to-br from-pink-100 to-purple-100">
 
       <h1 className="text-4xl font-bold text-center mb-8 text-purple-700">
@@ -93,12 +91,10 @@ export default function Reservations() {
       <div className="grid md:grid-cols-3 gap-6">
 
         {books.map(book => (
-
           <div
             key={book._id}
             className="bg-white/80 backdrop-blur-xl p-6 rounded-2xl shadow-xl hover:scale-105 transition"
           >
-
             <h2 className="text-xl font-bold text-indigo-700">
               📘 {book.title}
             </h2>
@@ -113,9 +109,7 @@ export default function Reservations() {
             >
               Reserve 🚀
             </button>
-
           </div>
-
         ))}
 
       </div>
