@@ -21,18 +21,15 @@ export default function Dashboard() {
   const fetchData = async () => {
     try {
 
-      const [booksRes, usersRes, borrowsRes, overdueRes] =
-        await Promise.all([
-          API.get("/books", getConfig()),
-          API.get("/auth/users", getConfig()),      // adjust if your route differs
-          API.get("/borrow", getConfig()),          // ALL borrows
-          API.get("/borrow/overdue", getConfig())   // overdue list
-        ]);
+      const booksRes = await API.get("/books", getConfig());
+      const usersRes = await API.get("/auth/users", getConfig());
+      const borrowsRes = await API.get("/borrow", getConfig());
+      const overdueRes = await API.get("/borrow/overdue", getConfig());
 
-      setBooks(booksRes.data || []);
-      setUsers(usersRes.data || []);
-      setBorrows(borrowsRes.data || []);
-      setOverdue(overdueRes.data || []);
+      setBooks(Array.isArray(booksRes.data) ? booksRes.data : []);
+      setUsers(Array.isArray(usersRes.data) ? usersRes.data : []);
+      setBorrows(Array.isArray(borrowsRes.data) ? borrowsRes.data : []);
+      setOverdue(Array.isArray(overdueRes.data) ? overdueRes.data : []);
 
     } catch (err) {
       console.log("Dashboard error:", err.response?.data || err.message);
@@ -51,25 +48,33 @@ export default function Dashboard() {
         📊 Dashboard
       </h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
 
-        <div className="bg-white p-6 rounded-2xl shadow-xl text-center">
-          <h2 className="text-2xl font-bold text-indigo-600">{books.length}</h2>
+        <div className="bg-white p-6 rounded-2xl shadow text-center">
+          <h2 className="text-3xl font-bold text-indigo-600">
+            {books.length}
+          </h2>
           <p>Books</p>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-xl text-center">
-          <h2 className="text-2xl font-bold text-green-600">{users.length}</h2>
+        <div className="bg-white p-6 rounded-2xl shadow text-center">
+          <h2 className="text-3xl font-bold text-green-600">
+            {users.length}
+          </h2>
           <p>Users</p>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-xl text-center">
-          <h2 className="text-2xl font-bold text-orange-600">{borrows.length}</h2>
+        <div className="bg-white p-6 rounded-2xl shadow text-center">
+          <h2 className="text-3xl font-bold text-orange-600">
+            {borrows.length}
+          </h2>
           <p>Borrows</p>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-xl text-center">
-          <h2 className="text-2xl font-bold text-red-600">{overdue.length}</h2>
+        <div className="bg-white p-6 rounded-2xl shadow text-center">
+          <h2 className="text-3xl font-bold text-red-600">
+            {overdue.length}
+          </h2>
           <p>Overdue</p>
         </div>
 

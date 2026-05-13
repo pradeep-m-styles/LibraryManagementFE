@@ -16,21 +16,21 @@ export default function Reservations() {
     };
   };
 
-  // 📚 BOOKS
+  // 📚 FETCH BOOKS
   const fetchBooks = async () => {
     try {
       const res = await API.get("/books", getConfig());
-      setBooks(res.data || []);
+      setBooks(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.log("Books error:", err.response?.data || err.message);
     }
   };
 
-  // 📌 RESERVATIONS
+  // 📌 FETCH RESERVATIONS
   const fetchReservations = async () => {
     try {
       const res = await API.get("/reservations", getConfig());
-      setReservations(res.data || []);
+      setReservations(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.log("Reservations error:", err.response?.data || err.message);
     }
@@ -41,16 +41,24 @@ export default function Reservations() {
     fetchReservations();
   }, []);
 
-  // 🚀 FIXED RESERVE FUNCTION
+  // 🚀 FIXED RESERVE FUNCTION (FINAL)
   const reserveBook = async (bookId) => {
     try {
 
       const token = localStorage.getItem("token");
+      const userId = localStorage.getItem("userId");
 
-      // 🔥 IMPORTANT FIX: most backends expect ONLY bookId
+      if (!token || !userId) {
+        alert("Please login first");
+        return;
+      }
+
       const res = await API.post(
         "/reservations",
-        { book: bookId },
+        {
+          user: userId,   // ✅ MUST match schema
+          book: bookId    // ✅ MUST match schema
+        },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -65,8 +73,10 @@ export default function Reservations() {
       alert("✅ Book reserved successfully");
 
     } catch (err) {
+
       console.log("RESERVATION ERROR:", err.response?.data || err.message);
 
+      // 🔥 SHOW REAL BACKEND ERROR
       alert(err.response?.data?.message || "Reservation failed");
     }
   };
