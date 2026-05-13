@@ -2,55 +2,67 @@ import { useEffect, useState } from "react";
 import API from "../api/axios";
 
 export default function Dashboard() {
-
-  const [data, setData] = useState({});
+  const [books, setBooks] = useState(0);
+  const [users, setUsers] = useState(0);
+  const [borrows, setBorrows] = useState(0);
+  const [overdue, setOverdue] = useState(0);
 
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem("token");
 
-    API.get("/dashboard")
-      .then(res => setData(res.data))
-      .catch(err => console.log(err));
+        const config = {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        };
 
+        // 🔥 BOOKS
+        const booksRes = await API.get("/books", config);
+        setBooks(booksRes.data.length || 0);
+
+        // 🔥 USERS
+        const usersRes = await API.get("/users", config);
+        setUsers(usersRes.data.length || 0);
+
+        // 🔥 BORROWS
+        const borrowsRes = await API.get("/borrows", config);
+        setBorrows(borrowsRes.data.length || 0);
+
+        // 🔥 OVERDUE
+        const overdueRes = await API.get("/borrows/overdue", config);
+        setOverdue(overdueRes.data.length || 0);
+
+      } catch (err) {
+        console.log("Dashboard error:", err.response?.data || err.message);
+      }
+    };
+
+    fetchData();
   }, []);
 
   return (
+    <div className="p-6 grid grid-cols-2 gap-6">
 
-    <div className="min-h-screen p-6 bg-gradient-to-r from-blue-50 to-indigo-100">
+      <div className="bg-white shadow p-6 rounded-xl">
+        <h2 className="text-xl font-bold">Books</h2>
+        <p className="text-3xl">{books}</p>
+      </div>
 
-      <h1 className="text-4xl font-bold text-indigo-700 mb-8">
-        📊 Dashboard
-      </h1>
+      <div className="bg-white shadow p-6 rounded-xl">
+        <h2 className="text-xl font-bold">Users</h2>
+        <p className="text-3xl">{users}</p>
+      </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="bg-white shadow p-6 rounded-xl">
+        <h2 className="text-xl font-bold">Borrows</h2>
+        <p className="text-3xl">{borrows}</p>
+      </div>
 
-        <div className="bg-white shadow-xl rounded-2xl p-6 text-center">
-          <h2 className="text-2xl font-bold text-blue-600">
-            {data.totalBooks || 0}
-          </h2>
-          <p className="text-gray-600 mt-2">Books</p>
-        </div>
-
-        <div className="bg-white shadow-xl rounded-2xl p-6 text-center">
-          <h2 className="text-2xl font-bold text-green-600">
-            {data.totalUsers || 0}
-          </h2>
-          <p className="text-gray-600 mt-2">Users</p>
-        </div>
-
-        <div className="bg-white shadow-xl rounded-2xl p-6 text-center">
-          <h2 className="text-2xl font-bold text-purple-600">
-            {data.totalBorrows || 0}
-          </h2>
-          <p className="text-gray-600 mt-2">Borrows</p>
-        </div>
-
-        <div className="bg-white shadow-xl rounded-2xl p-6 text-center">
-          <h2 className="text-2xl font-bold text-red-600">
-            {data.overdueBooks || 0}
-          </h2>
-          <p className="text-gray-600 mt-2">Overdue</p>
-        </div>
-
+      <div className="bg-white shadow p-6 rounded-xl">
+        <h2 className="text-xl font-bold">Overdue</h2>
+        <p className="text-3xl">{overdue}</p>
       </div>
 
     </div>

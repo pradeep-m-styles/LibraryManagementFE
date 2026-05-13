@@ -2,88 +2,111 @@ import { useEffect, useState } from "react";
 import API from "../api/axios";
 
 export default function Books() {
+
   const [books, setBooks] = useState([]);
-  const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
-  useEffect(() => {
-    const fetchBooks = async () => {
-      try {
-        const res = await API.get("/books");
-        setBooks(res.data);
-      } catch (err) {
-        setError("Failed to load books");
-      } finally {
-        setLoading(false);
-      }
-    };
+  const userId = localStorage.getItem("userId");
 
-    fetchBooks();
-  }, []);
-
-  const borrow = async (bookId) => {
+  // FETCH BOOKS
+  const fetchBooks = async () => {
     try {
-      const userId = localStorage.getItem("userId");
-
-      await API.post("/borrow", { userId, bookId });
-
-      alert("Book borrowed successfully");
-
-      // refresh
       const res = await API.get("/books");
-      setBooks(res.data);
-
+      setBooks(res.data || []);
     } catch (err) {
-      alert(err.response?.data?.message || "Borrow failed");
+      console.log(err);
     }
   };
 
-  const filteredBooks = books.filter(b =>
-    b.title.toLowerCase().includes(search.toLowerCase())
-  );
+  useEffect(() => {
+    fetchBooks();
+  }, []);
 
-  if (loading) return <div>Loading books...</div>;
-  if (error) return <div className="text-red-500">{error}</div>;
+  // BORROW BOOK (frontend UI update only)
+  const borrowBook = async (bookId) => {
+    try {
+
+      await API.post("/borrow", {
+        userId,
+        bookId
+      });
+
+      // 🔥 UPDATE UI ONLY (no backend change)
+      setBooks(prev =>
+        prev.map(book =>
+          book._id === bookId
+            ? { ...book, status: "borrowed" }
+            : book
+        )
+      );
+
+      alert("Book borrowed successfully");
+
+    } catch (err) {
+      console.log(err);
+      alert("Borrow failed");
+    }
+  };
 
   return (
-    <div className="p-4">
 
-      <input
-        className="border p-2 w-full mb-4"
-        placeholder="Search books..."
-        onChange={(e) => setSearch(e.target.value)}
-      />
+    <div className="min-h-screen p-8 bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100">
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* HEADER */}
+      <h1 className="text-5xl font-extrabold text-center mb-10 bg-gradient-to-r from-indigo-600 to-purple-600 text-transparent bg-clip-text">
+        📚 Library Books
+      </h1>
 
-        {filteredBooks.map(book => (
-          <div key={book._id} className="border p-4 rounded shadow">
+      {/* GRID */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-            <h2 className="font-bold">{book.title}</h2>
-            <p className="text-gray-600">{book.author}</p>
+        {books.map(book => (
 
-            <p className="mt-2">
-              Status:{" "}
-              <span className={book.available ? "text-green-600" : "text-red-600"}>
-                {book.available ? "Available" : "Borrowed"}
-              </span>
+          <div
+            key={book._id}
+            className="bg-white/80 backdrop-blur-xl border shadow-xl rounded-2xl p-6 hover:scale-105 transition"
+          >
+
+            {/* TITLE */}
+            <h2 className="text-xl font-bold text-indigo-700">
+              📘 {book.title}
+            </h2>
+
+            <p className="text-gray-600 mt-1">
+              ✍️ {book.author}
             </p>
 
+            {/* STATUS */}
+            <div className="mt-3">
+              <span
+                className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                  book.status === "borrowed"
+                    ? "bg-red-100 text-red-600"
+                    : "bg-green-100 text-green-700"
+                }`}
+              >
+                {book.status === "borrowed" ? "Borrowed" : "Available"}
+              </span>
+            </div>
+
+            {/* BUTTON */}
             <button
-              disabled={!book.available}
-              onClick={() => borrow(book._id)}
-              className={`px-3 py-1 mt-2 text-white rounded ${
-                book.available ? "bg-blue-500" : "bg-gray-400"
+              disabled={book.status === "borrowed"}
+              onClick={() => borrowBook(book._id)}
+              className={`w-full mt-5 py-3 rounded-xl font-semibold shadow-lg transition ${
+                book.status === "borrowed"
+                  ? "bg-gray-400 text-white cursor-not-allowed"
+                  : "bg-gradient-to-r from-green-500 to-emerald-500 hover:from-emerald-500 hover:to-green-600 text-white"
               }`}
             >
-              {book.available ? "Borrow" : "Borrowed"}
+              {book.status === "borrowed" ? "Already Borrowed" : "Borrow Book 🚀"}
             </button>
 
           </div>
+
         ))}
 
       </div>
+
     </div>
   );
 }
