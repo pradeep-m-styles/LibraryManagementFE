@@ -5,9 +5,6 @@ export default function Books() {
 
   const [books, setBooks] = useState([]);
 
-  const userId = localStorage.getItem("userId");
-
-  // FETCH BOOKS
   const fetchBooks = async () => {
     try {
       const res = await API.get("/books");
@@ -21,16 +18,24 @@ export default function Books() {
     fetchBooks();
   }, []);
 
-  // BORROW BOOK (frontend UI update only)
+  // 🔥 FIXED BORROW FUNCTION
   const borrowBook = async (bookId) => {
     try {
 
-      await API.post("/borrow", {
-        userId,
-        bookId
-      });
+      const userId = localStorage.getItem("userId");
+      const token = localStorage.getItem("token");
 
-      // 🔥 UPDATE UI ONLY (no backend change)
+      await API.post(
+        "/borrow",
+        { userId, bookId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      // 🔥 instant UI update
       setBooks(prev =>
         prev.map(book =>
           book._id === bookId
@@ -39,11 +44,11 @@ export default function Books() {
         )
       );
 
-      alert("Book borrowed successfully");
+      alert("✅ Book borrowed successfully");
 
     } catch (err) {
-      console.log(err);
-      alert("Borrow failed");
+      console.log("Borrow error:", err.response?.data || err.message);
+      alert(err.response?.data?.message || "Borrow failed");
     }
   };
 
@@ -51,12 +56,10 @@ export default function Books() {
 
     <div className="min-h-screen p-8 bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100">
 
-      {/* HEADER */}
       <h1 className="text-5xl font-extrabold text-center mb-10 bg-gradient-to-r from-indigo-600 to-purple-600 text-transparent bg-clip-text">
         📚 Library Books
       </h1>
 
-      {/* GRID */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
         {books.map(book => (
@@ -66,7 +69,6 @@ export default function Books() {
             className="bg-white/80 backdrop-blur-xl border shadow-xl rounded-2xl p-6 hover:scale-105 transition"
           >
 
-            {/* TITLE */}
             <h2 className="text-xl font-bold text-indigo-700">
               📘 {book.title}
             </h2>
@@ -75,7 +77,6 @@ export default function Books() {
               ✍️ {book.author}
             </p>
 
-            {/* STATUS */}
             <div className="mt-3">
               <span
                 className={`px-3 py-1 rounded-full text-sm font-semibold ${
@@ -88,7 +89,6 @@ export default function Books() {
               </span>
             </div>
 
-            {/* BUTTON */}
             <button
               disabled={book.status === "borrowed"}
               onClick={() => borrowBook(book._id)}
